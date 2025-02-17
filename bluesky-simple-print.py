@@ -70,7 +70,6 @@ class BlueskyFirehosePrinter:
                 print(f"Connected to {websocket_url}")
                 while True:
                     try:
-
                         eventws = await websocket.recv()
                         
                         # Parse event 
@@ -80,15 +79,24 @@ class BlueskyFirehosePrinter:
                         except json.JSONDecodeError:
                             post = "err:" + eventws
 
-                        if post.type not in onlys: continue
-                        if post.type in skips: continue
+                        #try: post.type 
+                        #except Exception as e:
+                        #    logger.debug(f"no type on post object. {e=} {post.toJSON()=}")
+                        #    continue
+                        #try: post.record["$type"]
+                        #except Exception as e:
+                        #    logger.debug(f"no post.commit.$type key. {e=} {post.commit.toJSON()=}")
+                        #    continue
+
+                        # s/type/kind/g -- com -> commit
+                        if onlys and post.kind not in onlys: continue
+                        if post.kind in skips: continue
                         # type in ["com", "id", "acc"]  # [com]mit, [id]entity, [acc]ount, ..? [del]ete? or commit type
                         ts = post.time_us//10e3
 
-
                         # Select color based on post ID
                         #color = self._get_post_color(post.time_us//10e4)
-                        hsv1 = [ (ts % 255)/255, .8, .8]
+                        hsv1 = [ (ts/4 % 255)/255, .8, .8]
 
                         # Generate a unique post ID
                         #post_id = str(hash(json.dumps(post)))
@@ -97,15 +105,12 @@ class BlueskyFirehosePrinter:
                         # Extract and print text
                         #text = self._extract_post_text(post)
                         try: 
-                            if post.type in ["com"]:
-                                if cfilters.get("-") and any(map(lambda w: w in post.commit.type, cfilters.get("-"))):
-                                    continue
-                                if cfilters.get("+") and not any(map(lambda w: w in post.commit.type, cfilters.get("+"))):
-                                    continue
-                                if fdrops and any(map(lambda w: w in post.commit.record.text, fdrops)):
-                                    continue
-                                if fkeeps and not any(map(lambda w: w in post.commit.record.text, fkeeps)):
-                                    continue
+                            #if post.type in ["com"]:
+                            if post.kind in ["commit"]:
+                                if cfilters.get("-") and any(map(lambda w: w in post.commit.type, cfilters.get("-"))): continue
+                                if cfilters.get("+") and not any(map(lambda w: w in post.commit.type, cfilters.get("+"))): continue
+                                if fdrops and any(map(lambda w: w in post.commit.record.text, fdrops)): continue
+                                if fkeeps and not any(map(lambda w: w in post.commit.record.text, fkeeps)): continue
 
                             if post.commit.record.text:
                                 text = post.commit.record.text 
@@ -182,8 +187,6 @@ async def main(skips=[], onlys=[], count=None, cfilters={}, fkeeps=[], fdrops=[]
     printer = BlueskyFirehosePrinter()
     await printer.connect_and_print(BLUESKY_FIREHOSE_WS, skips=skips, onlys=onlys, count=count, cfilters=cfilters, fkeeps=fkeeps, fdrops=fdrops)
 
-
-
 def cli_main(skips="", only="", cfilters="", filters="", count=None):
     """
     run the async func.
@@ -195,7 +198,7 @@ def cli_main(skips="", only="", cfilters="", filters="", count=None):
     """
     # Run the async main function
     skips = skips.split(",")
-    onlys = only.split(",")
+    onlys = only # onlys = list(only)# onlys = only.split(",")
     cfs = cfilters.split(",")
     cfilters = {"+": [f[1:] for f in cfs if f[:1] == "+"],
                 "-": [f[1:] for f in cfs if f[:1] == "-"] }
