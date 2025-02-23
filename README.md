@@ -23,3 +23,4 @@ uv run --with websockets,colorama,munch,fire python3 bluesky-simple-print.py
 
 # What it looks like
 ![firehose screenshot](/res/Screenshot_20250222_162327.png)
+![firehose asciinema](/res/ascii-1.gif)
