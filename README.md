@@ -5,7 +5,7 @@ A semantically colored feed of bluesky skeets, for your perspective, someone els
 - [x] Visualize bluesky data.
 - [x] Read from jetstream
 - [x] Extract interesting fields
-- [x] Filter by commit/post type
+- [x] Filter by commit/post type. Learning bsky data model just enough, filter also by keywords. Count limit.
 - [x] Get color selection ergonomic for further development, 24-bit? 32-bit? color, the alpha paramter of colorama is quite useful
   - [x] colorspace, hsla / hsl
   - [x] Vary colors, find balance so nothing draws excessive attention, but noticeable, though gradual, color evolution occurs
